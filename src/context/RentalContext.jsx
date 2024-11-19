@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useState } from 'react';
 
 const RentalContext = createContext();
 
@@ -38,40 +38,38 @@ function rentalReducer(state, action) {
 }
 
 // Provider Component
-export function RentalProvider({ children }) {
-  const [state, dispatch] = useReducer(rentalReducer, initialState);
+export const RentalProvider = ({ children }) => {
+  const [rentals, setRentals] = useState([]);
 
-  // Action Creators
-  const rentBook = (bookData, userData, paymentMethod) => {
-    dispatch({
-      type: ADD_RENTAL,
-      payload: {
-        book: bookData,
-        user: userData,
-        paymentStatus: paymentMethod === 'now' ? 'paid' : 'pending',
-        status: 'active'
-      }
-    });
+  const rentBook = (book, userData, paymentMethod) => {
+    const rental = {
+      id: rentals.length + 1,
+      book,
+      user: userData,
+      paymentMethod,
+      rentDate: new Date(),
+      collectionDate: userData.collectiondate,
+      returnDate: userData.returndate,
+      paymentStatus: paymentMethod === 'now' ? 'paid' : 'pending',
+    };
+  
+    // Update state
+    setRentals([...rentals, rental]);
+  
+    // Add to global booking results
+    if (!window.bookingResults) {
+      window.bookingResults = [];
+    }
+    window.bookingResults.push(rental);
   };
-
-  const updateRental = (rentalId, updates) => {
-    dispatch({
-      type: UPDATE_RENTAL,
-      payload: { id: rentalId, ...updates }
-    });
-  };
-
+  
   return (
-    <RentalContext.Provider value={{
-      rentals: state.rentals,
-      currentUser: state.currentUser,
-      rentBook,
-      updateRental
-    }}>
+    <RentalContext.Provider value={{ rentals, rentBook }}>
       {children}
     </RentalContext.Provider>
   );
-}
+};
+
 
 // Custom hook for using the rental context
 export function useRental() {
