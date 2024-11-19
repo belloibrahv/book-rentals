@@ -16,8 +16,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     cvv: '',
   });
   const [dateError, setDateError] = useState(''); // Validation message for dates
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
 
-     // Tracking booking exploration and results
+  // Tracking booking exploration and results
   useEffect(() => {
     // Initialize or update window.currentBookingInfo
     window.currentBookingInfo = {
@@ -48,6 +51,16 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     }
     setDateError(''); // Clear error if validation passes
     return true;
+  };
+
+  const handleCollectionDateChange = (e) => {
+    const collectionDate = e.target.value;
+    setFormData(prev => ({
+      ...prev, 
+      collectiondate: collectionDate,
+      // Reset return date if it's before or equal to new collection date
+      returndate: prev.returndate <= collectionDate ? '' : prev.returndate
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -148,10 +161,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
+              min={today} // Prevent selecting past date
               value={formData.collectiondate}
-              onChange={(e) =>
-                setFormData({ ...formData, collectiondate: e.target.value })
-              }
+              onChange={handleCollectionDateChange}
               onBlur={handleDateValidation} // Validate when user leaves the field
             />
           </div>
@@ -160,11 +172,12 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
-              value={formData.returndate}
+              value={formData.returndate || today} // Prevent selecting date before collection date
               onChange={(e) =>
                 setFormData({ ...formData, returndate: e.target.value })
               }
               onBlur={handleDateValidation}
+              disabled={!formData.collectiondate} // Disable until collection date is selected
             />
           </div>
           {dateError && <p className="error-text">{dateError}</p>} {/* Display validation error */}
