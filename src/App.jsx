@@ -5,6 +5,7 @@ import HomePage from './components/HomePage';
 import BookDetails from './components/BookDetails';
 import MyRentals from './components/MyRentals';
 import './styles/main.css';
+import Footer from './components/Footer.jsX';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
               <Route path="/my-rentals" element={<MyRentals />} />
             </Routes>
           </main>
+          <Footer />
         </div>
       </Router>
     </RentalProvider>

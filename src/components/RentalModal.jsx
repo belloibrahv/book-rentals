@@ -16,9 +16,13 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     cvv: '',
   });
   const [dateError, setDateError] = useState(''); // Validation message for dates
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
 
-   // Initialize or update window.currentBookingInfo
-   useEffect(() => {
+  // Tracking booking exploration and results
+  useEffect(() => {
+    // Initialize or update window.currentBookingInfo
     window.currentBookingInfo = {
       ...formData,
       book: {
@@ -28,6 +32,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       paymentMethod,
       isInFinalPage: true,
     };
+
+    // Log current booking exploration
+    console.log('Current Booking Exploration:', window.currentBookingInfo);
   }, [formData, paymentMethod, book]);
 
 
@@ -46,9 +53,19 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     return true;
   };
 
+  const handleCollectionDateChange = (e) => {
+    const collectionDate = e.target.value;
+    setFormData(prev => ({
+      ...prev, 
+      collectiondate: collectionDate,
+      // Reset return date if it's before or equal to new collection date
+      returndate: prev.returndate <= collectionDate ? '' : prev.returndate
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     const userData = {
       name: formData.name,
       email: formData.email,
@@ -66,11 +83,35 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       };
     }
 
+    // Prepare booking results
+    const bookingResult = {
+      book: {
+        id: book.id,
+        title: book.title,
+        rentPrice: book.rentPrice,
+      },
+      user: userData,
+      paymentMethod: paymentMethod,
+      bookingTimestamp: new Date().toISOString(),
+    };
+
+    // Initialize bookingResults array if not exists
+    if (!window.bookingResults) {
+      window.bookingResults = [];
+    }
+
+    // Add current booking to results
+    window.bookingResults.push(bookingResult);
+
+    // Log booking results
+    console.log('Booking Results:', window.bookingResults);
+
+    // Perform book rental
     rentBook(book, userData, paymentMethod);
 
     // Clear current booking info on submission
     window.currentBookingInfo = null;
-
+    
     onComplete();
   };
 
@@ -120,10 +161,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
+              min={today} // Prevent selecting past date
               value={formData.collectiondate}
-              onChange={(e) =>
-                setFormData({ ...formData, collectiondate: e.target.value })
-              }
+              onChange={handleCollectionDateChange}
               onBlur={handleDateValidation} // Validate when user leaves the field
             />
           </div>
@@ -132,11 +172,12 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
-              value={formData.returndate}
+              value={formData.returndate || today} // Prevent selecting date before collection date
               onChange={(e) =>
                 setFormData({ ...formData, returndate: e.target.value })
               }
               onBlur={handleDateValidation}
+              disabled={!formData.collectiondate} // Disable until collection date is selected
             />
           </div>
           {dateError && <p className="error-text">{dateError}</p>} {/* Display validation error */}
