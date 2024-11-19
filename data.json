@@ -1,0 +1,38 @@
+[
+    {"id": 1,
+     "img":"book1.jpg",
+     "title":"Watchmen", 
+     "author":"Alan Moore, Dave Gibbons, and John Higgins", 
+     "description": "This book examines each of the series' twelve issues in unprecedented detail, moving page by page and panel by panel to reveal the hidden foundations of this milestone in modern storytelling. Edited with notes by Leslie S. Klinger, this new edition draws upon critical and scholastic commentary, in-depth interviews with Dave Gibbons, and previously unseen original source material. Klinger provides the reader with a unique and comprehensive view of Watchmen as both a singular artistic achievement and a transformative event in the history of comics as a medium. Set in a world in which history has been forever altered by the existence of superheroes, Alan Moore and Dave Gibbons' monumental graphic novel Watchmen is one of the most influential comic book series of all time. Following two generations of masked crime-fighters from the end of World War II to the height of the Cold War, this compelling tale unfolds from a simple murder mystery into an epic saga of power, corruption and the ultimate meaning of humanity. More than 30 years after it was first published, Moore and Gibbons' masterpiece continues to inspire and entertain readers around the world. Named one of Time magazine's 100 best English-language novels of the 20th century, Watchmen has won countless critical accolades and honors, including the Eisner Award and the Hugo Award"
+    },
+    {"id": 2,
+     "img":"book2.jpg", 
+     "title":"Writers and readers in medieval Italy", 
+     "author":"Armando Petrucci", 
+     "description": "In this fascinating book, one of the world's foremost authorities on writing and the social history of books discusses reading and writing in medieval Italy. Armando Petrucci addresses concerns central to paleographers and to cultural historians: how people learned to write, what they wrote, what they read, how scribes were trained, the purposes for which books were copied, and how ideas about books influenced their use, preservation, and transmission."
+    },
+    {"id": 3,
+     "img":"book3.jpg", 
+     "title":"Highland Wedding", 
+     "author":"Hannah Howell", 
+     "description": "Few authors portray the Scottish highlands as lovingly or colorfully as Hannah Howell. Publishers Weekly New York Times Bestselling Author Hannah Howell The vivid scar that spans Sir Iain MacLagan's cheek is a daily reminder of the wife he lost - and of the enemy that still stalks him. Commanded by Scotland's king to remarry in order to unite two powerful border clans, lain reluctantly weds Islaen MacRoth, a woman whose delicate appearance belies a playful, seductive nature that proves dangerously attractive to a man who has vowed never to jeopardize his heart, or his loved ones, again...Raised with eleven boisterous brothers, Islaen has little time for foolish romantic notions. Even so, she hoped for more than a forced marriage to a man who shares her bed, but not her life. Step by step, Islaen sets out to wear down Iain's defenses."
+     },
+    {"id": 4,
+     "img":"book4.jpg", 
+     "title":"Pride and Prejudice", 
+     "author":"Jane Austen", 
+     "description": "The quintessential British comedy of manners pairing the bright, pretty but prejudiced Elizabeth Bennet and the wealthy, handsome but prideful Mr Darcy."
+     },
+    {"id": 5,
+     "img":"book5.jpg", 
+     "title":"Huckleberry Finn and The Adventures of Tom Sawyer", 
+     "author":"Mark Twain", 
+     "description": "Take a lighthearted, nostalgic trip to a simpler time, seen through the eyes of a very special boy named Tom Sawyer. It is a dreamlike summertime world of hooky and adventure, pranks and punishment, villains and first love, filled with memorable characters. Adults and young readers alike continue to enjoy this delightful classic of the promise and dreams of youth from one of America’s most beloved authors. He has no mother, his father is a brutal drunkard, and he sleeps in a barrel. He’s Huck Finn—liar, sometime thief, and rebel against respectability. But when Huck meets a runaway slave named Jim, his life changes forever. On their exciting flight down the Mississippi aboard a raft, the boy nobody wanted matures into a young man of courage and conviction. As Ernest Hemingway said of this glorious novel, “All modern American literature comes from one book by Mark Twain called Huckleberry Finn."
+     },
+    {"id": 6,
+     "img":"book6.jpg", 
+     "title":"Alice's Adventures in Wonderland", 
+     "author":"Lewis Carroll", 
+     "description": "Alice's Adventures in Wonderland (commonly Alice in Wonderland) is an 1865 English children's novel by Lewis Carroll. A young girl named Alice falls through a rabbit hole into a fantasy world of anthropomorphic creatures. It is seen as an example of the literary nonsense genre. One of the best-known works of Victorian literature, its narrative, structure, characters and imagery have had huge influence on popular culture and literature, especially in the fantasy genre."
+     }
+]
