@@ -8,6 +8,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     name: '',
     email: '',
     phone: '',
+    address: '',
+    collectiondate: '',
+    returndate: '',
     cardNumber: '',
     expiryDate: '',
     cvv: ''
@@ -19,7 +22,10 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     const userData = {
       name: formData.name,
       email: formData.email,
-      phone: formData.phone
+      phone: formData.phone,
+      address: formData.address,
+      collectiondate: formData.collectiondate,
+      returndate:formData.returndate
     };
 
     if (paymentMethod === 'now') {
@@ -40,7 +46,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
         <h2>Rent {book.title}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Name:</label>
+            <label>Full Name:</label>
             <input
               type="text"
               required
@@ -66,7 +72,34 @@ const RentalModal = ({ book, onClose, onComplete }) => {
               onChange={e => setFormData({...formData, phone: e.target.value})}
             />
           </div>
-          
+          <div className="form-group">
+            <label>Address:</label>
+            <input
+              type="text"
+              required
+              value={formData.address}
+              onChange={e => setFormData({...formData, address: e.target.value})}
+            />
+          </div>
+          <div className="form-group">
+            <label>Collection Date:</label>
+            <input
+              type="date"
+              required
+              value={formData.collectiondate}
+              onChange={e => setFormData({...formData, collectiondate: e.target.value})}
+            />
+          </div>
+          <div className="form-group">
+            <label>Return Date:</label>
+            <input
+              type="date"
+              required
+              value={formData.returndate}
+              onChange={e => setFormData({...formData, returndate: e.target.value})}
+            />
+          </div>
+
           <div className="payment-options">
             <label>
               <input
