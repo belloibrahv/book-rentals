@@ -17,8 +17,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   });
   const [dateError, setDateError] = useState(''); // Validation message for dates
 
-   // Initialize or update window.currentBookingInfo
-   useEffect(() => {
+     // Tracking booking exploration and results
+  useEffect(() => {
+    // Initialize or update window.currentBookingInfo
     window.currentBookingInfo = {
       ...formData,
       book: {
@@ -28,6 +29,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       paymentMethod,
       isInFinalPage: true,
     };
+
+    // Log current booking exploration
+    console.log('Current Booking Exploration:', window.currentBookingInfo);
   }, [formData, paymentMethod, book]);
 
 
@@ -48,7 +52,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     const userData = {
       name: formData.name,
       email: formData.email,
@@ -66,11 +70,35 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       };
     }
 
+    // Prepare booking results
+    const bookingResult = {
+      book: {
+        id: book.id,
+        title: book.title,
+        rentPrice: book.rentPrice,
+      },
+      user: userData,
+      paymentMethod: paymentMethod,
+      bookingTimestamp: new Date().toISOString(),
+    };
+
+    // Initialize bookingResults array if not exists
+    if (!window.bookingResults) {
+      window.bookingResults = [];
+    }
+
+    // Add current booking to results
+    window.bookingResults.push(bookingResult);
+
+    // Log booking results
+    console.log('Booking Results:', window.bookingResults);
+
+    // Perform book rental
     rentBook(book, userData, paymentMethod);
 
     // Clear current booking info on submission
     window.currentBookingInfo = null;
-
+    
     onComplete();
   };
 
