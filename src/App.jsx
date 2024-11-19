@@ -5,7 +5,7 @@ import HomePage from './components/HomePage';
 import BookDetails from './components/BookDetails';
 import MyRentals from './components/MyRentals';
 import './styles/main.css';
-import Footer from './components/Footer.jsX';
+import Footer from './components/Footer.jsx';
 
 function App() {
   return (
