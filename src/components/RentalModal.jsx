@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useRental } from '../context/RentalContext';
-import { CreditCard, Lock } from 'lucide-react';
 
 
 // Card type detection utility
