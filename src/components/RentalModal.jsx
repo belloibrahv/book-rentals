@@ -33,8 +33,6 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       isInFinalPage: true,
     };
 
-    // Log current booking exploration
-    console.log('Current Booking Exploration:', window.currentBookingInfo);
   }, [formData, paymentMethod, book]);
 
 
@@ -83,25 +81,39 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       };
     }
 
+    const userInfoWithoutPayment =  {
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      address: userData.address,
+      paymentMethod: paymentMethod,
+    }
+    const userInfoWithPayment =  {
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      address: userData.address,
+      paymentMethod: paymentMethod,
+      paymentDetails: userData?.paymentDetails
+    }
+
+    const userDetails = paymentMethod == 'now' ? userInfoWithPayment : userInfoWithoutPayment;  
     // Prepare booking results
     const bookingResult = {
       book: {
-        id: book.id,
-        title: book.title,
-        rentPrice: book.rentPrice,
+        title: book.title
       },
-      user: userData,
-      paymentMethod: paymentMethod,
-      bookingTimestamp: new Date().toISOString(),
+      user: userDetails
     };
-
+    
+    window.bookingResults;
+    window.bookingResults = bookingResult;
     // Initialize bookingResults array if not exists
-    if (!window.bookingResults) {
-      window.bookingResults = [];
-    }
+    // if (!window.bookingResults) {
+    // }
 
     // Add current booking to results
-    window.bookingResults.push(bookingResult);
+    // window.bookingResults.push(bookingResult);
 
     // Log booking results
     console.log('Booking Results:', window.bookingResults);
