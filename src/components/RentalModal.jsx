@@ -208,6 +208,10 @@ const RentalModal = ({ book, onClose, onComplete }) => {
                 <label>Card Number:</label>
                 <input
                   type="text"
+                  pattern="[0-9\s]{13,19}"
+                  min="16"
+                  max="19"
+                  placeholder="xxxx xxxx xxxx xxxx"
                   required
                   value={formData.cardNumber}
                   onChange={(e) =>
@@ -232,6 +236,8 @@ const RentalModal = ({ book, onClose, onComplete }) => {
                 <input
                   type="text"
                   required
+                  min="3"
+                  max="3"
                   value={formData.cvv}
                   onChange={(e) =>
                     setFormData({ ...formData, cvv: e.target.value })
