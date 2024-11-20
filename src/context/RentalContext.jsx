@@ -58,7 +58,7 @@ export const RentalProvider = ({ children }) => {
   
     // Add to global booking results
     // if (!window.bookingResults) {
-      // window.bookingResults
+      // window.bookingResults = []
     // }
     // window.bookingResults.push(rental);
     // window.bookingResults = rentBook
