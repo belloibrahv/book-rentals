@@ -3,18 +3,27 @@ import { useRental } from '../context/RentalContext';
 import { CreditCard, Lock } from 'lucide-react';
 
 
-const cardValidations = {
-  visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
-  mastercard: /^5[1-5][0-9]{14}$/,
-  amex: /^3[47][0-9]{13}$/,
-  discover: /^6(?:011|5[0-9]{2})[0-9]{12}$/
-};
+// Card type detection utility
+const detectCardType = (cardNumber) => {
+  const cardPatterns = [
+    { type: 'visa', regex: /^4/, icon: '💳' },
+    { type: 'mastercard', regex: /^5[1-5]/, icon: '💳' },
+    { type: 'amex', regex: /^3[47]/, icon: '💳' },
+    { type: 'discover', regex: /^6(?:011|5)/, icon: '💳' },
+  ];
 
+  const detectedCard = cardPatterns.find(card => 
+    cardNumber.match(card.regex)
+  );
+
+  return detectedCard || { type: 'unknown', icon: '💳' };
+  
+};
 
 const RentalModal = ({ book, onClose, onComplete }) => {
   const { rentBook } = useRental();
-  const [cardType, setCardType] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('later');
+  const [cardType, setCardType] = useState(null);
   const [isCurrentlyBooking, setIsCurrentlyBooking] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -29,99 +38,114 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   });
   const [dateError, setDateError] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const [paymentErrors, setPaymentErrors] = useState({});
 
-  const detectCardType = (number) => {
-    for (const [type, regex] of Object.entries(cardValidations)) {
-      if (regex.test(number.replace(/\s/g, ''))) {
-        return type;
-      }
-    }
-    return null;
-  };
-
+  // Validation functions
   const validateCardNumber = (number) => {
-    const cleanNumber = number.replace(/\s/g, '');
-    const type = detectCardType(cleanNumber);
-    setCardType(type);
+    // Remove spaces and dashes
+    const cleanNumber = number.replace(/[\s-]/g, '');
     
-    if (!type) {
+    // Basic length and numeric check
+    if (!/^\d{13,19}$/.test(cleanNumber)) {
       return 'Invalid card number';
     }
-    return null;
+
+    // Luhn algorithm validation
+    let sum = 0;
+    let isEvenIndex = false;
+    for (let i = cleanNumber.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleanNumber.charAt(i), 10);
+
+      if (isEvenIndex) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+
+      sum += digit;
+      isEvenIndex = !isEvenIndex;
+    }
+
+    return sum % 10 === 0 ? null : 'Invalid card number';
   };
 
-  const validateExpiryDate = (date) => {
-    const [month, year] = date.split('/');
+  const validateExpiryDate = (expiry) => {
+    const [month, year] = expiry.split('/');
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+      return 'Invalid expiry format (MM/YY)';
+    }
+
     const currentYear = new Date().getFullYear() % 100;
     const currentMonth = new Date().getMonth() + 1;
 
-    if (!/^\d{2}\/\d{2}$/.test(date)) {
-      return 'Invalid date format (MM/YY)';
-    }
-
-    const expYear = parseInt(year, 10);
     const expMonth = parseInt(month, 10);
+    const expYear = parseInt(year, 10);
+
+    if (expMonth < 1 || expMonth > 12) {
+      return 'Invalid month';
+    }
 
     if (expYear < currentYear || 
         (expYear === currentYear && expMonth < currentMonth)) {
       return 'Card has expired';
     }
+
     return null;
   };
 
+
   const validateCVV = (cvv) => {
-    const cvvRegex = /^[0-9]{3,4}$/;
-    return cvvRegex.test(cvv) ? null : 'Invalid CVV';
+    // Different card types have different CVV lengths
+    const cvvLength = {
+      visa: 3,
+      mastercard: 3,
+      amex: 4,
+      discover: 3
+    };
+
+    const cardTypeLength = cvvLength[cardType?.type] || 3;
+    
+    if (!/^\d+$/.test(cvv)) {
+      return 'CVV must be numeric';
+    }
+
+    if (cvv.length !== cardTypeLength) {
+      return `CVV must be ${cardTypeLength} digits for this card type`;
+    }
+
+    return null;
   };
 
   const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
-    const error = validateCardNumber(value);
+    const value = e.target.value.replace(/[^\d]/g, '');
+    const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 ');
     
+    const cardDetection = detectCardType(value);
+    setCardType(cardDetection);
+
     setFormData(prev => ({
       ...prev, 
-      cardNumber: value
-    }));
-
-    setFormErrors(prev => ({
-      ...prev,
-      cardNumber: error
+      cardNumber: formattedValue
     }));
   };
 
-  const handleExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    
-    if (value.length > 2) {
-      value = `${value.slice(0,2)}/${value.slice(2)}`;
+
+  const handlePaymentValidation = () => {
+    const errors = {};
+
+    if (paymentMethod === 'now') {
+      const cardNumberError = validateCardNumber(formData.cardNumber.replace(/\s/g, ''));
+      const expiryError = validateExpiryDate(formData.expiryDate);
+      const cvvError = validateCVV(formData.cvv);
+
+      if (cardNumberError) errors.cardNumber = cardNumberError;
+      if (expiryError) errors.expiryDate = expiryError;
+      if (cvvError) errors.cvv = cvvError;
     }
 
-    const error = validateExpiryDate(value);
-    
-    setFormData(prev => ({
-      ...prev, 
-      expiryDate: value
-    }));
-
-    setFormErrors(prev => ({
-      ...prev,
-      expiryDate: error
-    }));
-  };
-
-  const handleCVVChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '');
-    const error = validateCVV(value);
-    
-    setFormData(prev => ({
-      ...prev, 
-      cvv: value
-    }));
-
-    setFormErrors(prev => ({
-      ...prev,
-      cvv: error
-    }));
+    setPaymentErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Get today's date in YYYY-MM-DD format
@@ -187,6 +211,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!handleDateValidation()) return;
+
+     // Validate payment details before submission
+     if (!handlePaymentValidation()) {
+      return;
+    }
 
     const bookingResult = {
       book: {
@@ -310,98 +339,76 @@ const RentalModal = ({ book, onClose, onComplete }) => {
           </div>
           {paymentMethod === 'now' && (
             <div className="payment-details">
+              <div className="card-icons">
+                {['visa', 'mastercard', 'amex', 'discover'].map(type => (
+                  <span 
+                    key={type} 
+                    className={`card-icon ${cardType?.type === type ? 'active' : ''}`}
+                  >
+                    {type === 'visa' && '💳'}
+                    {type === 'mastercard' && '💳'}
+                    {type === 'amex' && '💳'}
+                    {type === 'discover' && '💳'}
+                  </span>
+                ))}
+              </div>
+              
               <div className="form-group">
                 <label>Card Number:</label>
                 <input
                   type="text"
-                  pattern="[0-9\s]{13,19}"
-                  min="16"
-                  max="19"
-                  placeholder="xxxx xxxx xxxx xxxx"
                   required
+                  maxLength="19"
                   value={formData.cardNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cardNumber: e.target.value })
-                  }
-            <>
-            <div className="payment-header">
-              <h2>Payment Details</h2>
-              <div className="card-icons">
-                <CreditCard 
-                  color={cardType === 'visa' ? '#1434CB' : '#666'}
-                  size={24} 
-                  className={cardType === 'visa' ? 'active-card' : ''}
+                  onChange={handleCardNumberChange}
+                  placeholder="1234 5678 9012 3456"
                 />
-                <CreditCard 
-                  color={cardType === 'mastercard' ? '#EB001B' : '#666'}
-                  size={24} 
-                  className={cardType === 'mastercard' ? 'active-card' : ''}
-                />
-                <CreditCard 
-                  color={cardType === 'amex' ? '#2E77BB' : '#666'}
-                  size={24} 
-                  className={cardType === 'amex' ? 'active-card' : ''}
-                />
-                <CreditCard 
-                  color={cardType === 'discover' ? '#F68B1F' : '#666'}
-                  size={24} 
-                  className={cardType === 'discover' ? 'active-card' : ''}
-                />
+                {paymentErrors.cardNumber && (
+                  <p className="error-text">{paymentErrors.cardNumber}</p>
+                )}
               </div>
-            </div>
-            <div className="payment-details">
-              <div className="form-group">
-                <label>Card Number</label>
-                <div className="input-with-icon">
-                  <Lock size={20} className="input-icon" />
-                  <input
-                    type="text"
-                    value={formData.cardNumber}
-                    onChange={handleCardNumberChange}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength="19"
-                    required
-                  />
-                </div>
-                {formErrors.cardNumber && 
-                  <p className="error-text">{formErrors.cardNumber}</p>
-                }
-              </div>
-
-              <div className="form-row">
+              
+              <div className="payment-row">
                 <div className="form-group">
-                  <label>Expiry Date</label>
+                  <label>Expiry Date:</label>
                   <input
                     type="text"
-                    value={formData.expiryDate}
-                    onChange={handleExpiryChange}
-                    placeholder="MM/YY"
+                    required
                     maxLength="5"
-                    required
+                    value={formData.expiryDate}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      const formatted = value.length > 2 
+                        ? `${value.slice(0,2)}/${value.slice(2)}` 
+                        : value;
+                      setFormData(prev => ({ ...prev, expiryDate: formatted }));
+                    }}
+                    placeholder="MM/YY"
                   />
-                  {formErrors.expiryDate && 
-                    <p className="error-text">{formErrors.expiryDate}</p>
-                  }
+                  {paymentErrors.expiryDate && (
+                    <p className="error-text">{paymentErrors.expiryDate}</p>
+                  )}
                 </div>
-
+                
                 <div className="form-group">
-                  <label>CVV</label>
+                  <label>CVV:</label>
                   <input
                     type="text"
-                    value={formData.cvv}
-                    onChange={handleCVVChange}
-                    placeholder="123"
-                    maxLength="4"
                     required
+                    maxLength="4"
+                    value={formData.cvv}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      setFormData(prev => ({ ...prev, cvv: value }));
+                    }}
+                    placeholder="123"
                   />
-                  {formErrors.cvv && 
-                    <p className="error-text">{formErrors.cvv}</p>
-                  }
+                  {paymentErrors.cvv && (
+                    <p className="error-text">{paymentErrors.cvv}</p>
+                  )}
                 </div>
               </div>
             </div>
-            
-            </>
           )}
           <div className="modal-actions">
             <button type="submit" className="submit-button">
