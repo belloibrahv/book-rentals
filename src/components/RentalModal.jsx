@@ -53,16 +53,10 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     if (collectiondate && returndate) {
       const collection = new Date(collectiondate);
       const returnDate = new Date(returndate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (returnDate <= collection) {
-        setDateError('Return date must be later than collection date.');
-        return false;
-      }
-
-      if (returnDate < today) {
-        setDateError('Return date cannot be in the past.');
+  
+      // Validate return date is on or after collection date
+      if (returnDate < collection) {
+        setDateError('Return date must be on or after collection date.');
         return false;
       }
     }
@@ -76,8 +70,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     setFormData(prev => ({
       ...prev,
       collectiondate: collectionDate,
-      returndate: prev.returndate && new Date(prev.returndate) <= new Date(collectionDate)
-        ? ''
+      // Reset return date if it's before the new collection date
+      returndate: prev.returndate && new Date(prev.returndate) < new Date(collectionDate)
+        ? collectionDate
         : prev.returndate
     }));
   };
@@ -85,59 +80,36 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   // Form submission handler
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!handleDateValidation()) return;
 
-    // Prepare user data
-    const userData = {
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      address: formData.address,
-      collectiondate: formData.collectiondate,
-      returndate: formData.returndate,
-    };
-
-    // Prepare user info with payment details
-    const userInfoWithoutPayment = {
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone,
-      address: userData.address,
-      paymentMethod: paymentMethod,
-    };
-
-    const userInfoWithPayment = paymentMethod === 'now' 
-      ? { 
-          ...userInfoWithoutPayment, 
-          paymentDetails: {
-            cardNumber: formData.cardNumber,
-            expiryDate: formData.expiryDate,
-            cvv: formData.cvv
-          }
-        }
-      : userInfoWithoutPayment;
-
-    // Prepare booking result
     const bookingResult = {
       book: {
         title: book.title,
-        id: book.id
+        id: book.id,
       },
-      user: userInfoWithPayment
+      user: {
+        ...formData,
+        paymentMethod,
+        paymentDetails:
+          paymentMethod === 'now'
+            ? {
+                cardNumber: formData.cardNumber,
+                expiryDate: formData.expiryDate,
+                cvv: formData.cvv,
+              }
+            : null,
+      },
     };
 
-    // Add current booking to bookingResults
     window.bookingResults.push(bookingResult);
 
-    // Perform book rental
-    rentBook(book, userData, paymentMethod);
+    rentBook(book, bookingResult.user, paymentMethod);
 
-    // Clear current booking info
     window.currentBookingInfo = null;
     setIsCurrentlyBooking(false);
     onComplete();
   };
 
-  // Close handler
   const handleClose = () => {
     setIsCurrentlyBooking(false);
     window.currentBookingInfo = { isInFinalPage: false };
@@ -200,11 +172,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
-              min={today}
+              min={formData.collectiondate || today}
               value={formData.returndate}
               onChange={(e) => setFormData({ ...formData, returndate: e.target.value })}
               onBlur={handleDateValidation}
-            />
+            /> 
           </div>
           {dateError && <p className="error-text">{dateError}</p>} {/* Display validation error */}
           <div className="payment-options">
@@ -213,6 +185,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
                 type="radio"
                 name="payment"
                 value="now"
+                min={formData.collectiondate || today} // Dynamic minimum date
                 checked={paymentMethod === 'now'}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
