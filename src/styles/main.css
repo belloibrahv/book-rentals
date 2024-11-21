@@ -442,3 +442,43 @@ body, html, #root {
     padding: 1rem;
   }
 }
+
+/* Payment Details */
+
+.payment-details {
+  position: relative;
+  margin-top: 20px;
+}
+
+.card-icons {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.card-icon {
+  font-size: 24px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.card-icon.active {
+  opacity: 1;
+}
+
+.payment-row {
+  display: flex;
+  gap: 15px;
+}
+
+.payment-row .form-group {
+  flex: 1;
+}
+
+.error-text {
+  color: #ff4d4d;
+  font-size: 0.8em;
+  margin-top: 5px;
+}
