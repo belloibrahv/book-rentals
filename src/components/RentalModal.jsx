@@ -239,8 +239,10 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             address: formData.address,
             collectiondate: formData.collectiondate,
             returndate: formData.returndate,
-            payNow,
-            payLater,
+            paymentMethod: {
+              payNow,
+              payLater,
+            },
             paymentDetails: payNow
                 ? {
                       cardNumber: formData.cardNumber,
