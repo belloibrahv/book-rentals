@@ -10,9 +10,7 @@ const detectCardType = (cardNumber) => {
     { type: 'amex', regex: /^3[47]/, icon: '💳' },
     { type: 'discover', regex: /^6(?:011|5)/, icon: '💳' },
   ];
-  const detectedCard = cardPatterns.find(card => 
-    cardNumber.match(card.regex)
-  );
+  const detectedCard = cardPatterns.find((card) => cardNumber.match(card.regex));
   return detectedCard || { type: 'unknown', icon: '💳' };
 };
 
@@ -20,7 +18,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   const { rentBook } = useRental();
 
   // State for payment methods
-  const [payNow, setPayNow] = useState(false);
+  const [payNow, setPayNow] = useState(true);
   const [payLater, setPayLater] = useState(false);
   const [cardType, setCardType] = useState(null);
   const [isCurrentlyBooking, setIsCurrentlyBooking] = useState(true);
@@ -117,15 +115,15 @@ const RentalModal = ({ book, onClose, onComplete }) => {
 
   // Handle card number change with formatting and type detection
   const handleCardNumberChange = (e) => {
-    const value = e.target.value.replace(/[^\d]/g, '');
-    const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-    
-    const cardDetection = detectCardType(value);
-    setCardType(cardDetection);
-
-    setFormData(prev => ({
-      ...prev, 
-      cardNumber: formattedValue
+    const value = e.target.value.replace(/[^\d]/g, ''); // Strip non-digit characters
+    const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 '); // Format as 1234 5678
+  
+    const detectedCard = detectCardType(value); // Detect the card type
+    setCardType(detectedCard); // Update card type state
+  
+    setFormData((prev) => ({
+      ...prev,
+      cardNumber: formattedValue,
     }));
   };
 
@@ -168,26 +166,41 @@ const RentalModal = ({ book, onClose, onComplete }) => {
 
     // Update current booking info in real-time
     useEffect(() => {
-      if (isCurrentlyBooking) {
-          const currentBookingInfo = {
-              ...formData,
-              book: {
-                  title: book.title,
-                  id: book.id,
-              },
-              payNow,
-              payLater,
-              isInFinalPage: true,
-          };
-          
-          window.currentBookingInfo = currentBookingInfo;
-          localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
-      } else {
-          window.currentBookingInfo = { isInFinalPage: false };
-          localStorage.removeItem('currentBookingInfo');
-      }
-  }, [formData, payNow, payLater, book, isCurrentlyBooking]);
-
+      const currentBookingInfo = {
+        bookDetails: {
+          id: book.id,
+          title: book.title,
+        },
+        userDetails: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+        },
+        rentalDetails: {
+          collectionDate: formData.collectiondate,
+          returnDate: formData.returndate,
+          rentalPrice: book.rentPrice,
+        },
+        paymentDetails: {
+          paymentMode: {
+            payNow,
+            payLater,
+          },
+          cardDetails: payNow
+            ? {
+                cardNumber: formData.cardNumber,
+                expiryDate: formData.expiryDate,
+                cvv: formData.cvv,
+              }
+            : null,
+        },
+        isInFinalPage: true,
+      };
+      window.currentBookingInfo = currentBookingInfo;
+      localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
+    }, [formData, payNow, payLater, book]);
+    
   // Date validation logic
   const handleDateValidation = () => {
     const { collectiondate, returndate } = formData;
@@ -221,62 +234,70 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-      
+  
     // Validate dates and payment details
     if (!handleDateValidation() || !handlePaymentValidation()) {
       return;
     }
-
+  
     // Prepare booking result
     const bookingResult = {
-        book: {
-            title: book.title,
+      bookDetails: {
+        id: book.id,
+        title: book.title,
+      },
+      userDetails: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      },
+      rentalDetails: {
+        collectionDate: formData.collectiondate, // Updated structure
+        returnDate: formData.returndate,         // Updated structure
+        rentalPrice: book.rentPrice,
+      },
+      paymentDetails: {
+        paymentMode: {
+          payNow,
+          payLater,
         },
-        user: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            collectiondate: formData.collectiondate,
-            returndate: formData.returndate,
-            paymentMethod: {
-              payNow,
-              payLater,
-            },
-            paymentDetails: payNow
-                ? {
-                      cardNumber: formData.cardNumber,
-                      expiryDate: formData.expiryDate,
-                      cvv: formData.cvv,
-                  }
-                : null,
-        },
+        cardDetails: payNow
+          ? {
+              cardNumber: formData.cardNumber,
+              expiryDate: formData.expiryDate,
+              cvv: formData.cvv,
+            }
+          : null,
+      },
     };
-
+  
     // Add to booking results and save to localStorage
     window.bookingResults.push(bookingResult);
     localStorage.setItem('bookingResults', JSON.stringify(window.bookingResults));
-
+  
     // Rent the book using the new payment logic
-    rentBook(book, bookingResult.user, payNow ? 'now' : 'later');
-
+    rentBook(book, bookingResult.userDetails, payNow ? 'now' : 'later');
+  
     // Reset booking state
     setIsCurrentlyBooking(false);
     onComplete();
-  };
+  };  
+  
 
   // Payment method handler
   const handlePaymentMethodChange = (method) => {
-      setPayNow(method === 'now');
-      setPayLater(method === 'later');
+    setPayNow(method === 'now');
+    setPayLater(method === 'later');
   };
-
 
   const handleClose = () => {
     setIsCurrentlyBooking(false);
     window.currentBookingInfo = { isInFinalPage: false };
+    localStorage.removeItem('currentBookingInfo');
     onClose();
   };
+  
 
   return (
     <div className="modal-overlay">
@@ -343,42 +364,37 @@ const RentalModal = ({ book, onClose, onComplete }) => {
           {dateError && <p className="error-text">{dateError}</p>} {/* Display validation error */}
           <div className="payment-options">
             <label>
-            <input
+              <input
                 type="radio"
                 name="payment"
                 value="now"
                 checked={payNow}
                 onChange={() => handlePaymentMethodChange('now')}
-            />
+              />
               Pay Now
             </label>
             <label>
-            <input
+              <input
                 type="radio"
                 name="payment"
                 value="later"
                 checked={payLater}
                 onChange={() => handlePaymentMethodChange('later')}
-            />
+              />
               Pay Later
             </label>
           </div>
+          
           {payNow && (
           <div className="payment-details">
             <div className="card-icons">
-              {['visa', 'mastercard', 'amex', 'discover'].map(type => (
-                <span 
-                  key={type} 
-                  className={`card-icon ${cardType?.type === type ? 'active' : ''}`}
-                >
-                  {type === 'visa' && '💳'}
-                  {type === 'mastercard' && '💳'}
-                  {type === 'amex' && '💳'}
-                  {type === 'discover' && '💳'}
+              {cardType?.type && (
+                <span className={`card-icon active`}>
+                  {cardType.icon}
                 </span>
-              ))}
+              )}
             </div>
-            
+
             <div className="form-group">
               <label>Card Number:</label>
               <input
