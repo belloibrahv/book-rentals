@@ -1,3 +1,4 @@
+import React from 'react';
 import { useRental } from '../context/RentalContext';
 import { formatDate } from '../utils/rentalUtils';
 
@@ -11,20 +12,20 @@ const MyRentals = () => {
         <p>{"You haven't rented any books yet."}</p>
       ) : (
         <div className="rented-books-list">
-          {rentals.map((rental) => (
-            <div key={rental.id} className="rental-item">
+          {rentals.map((rental, index) => (
+            <div key={index} className="rental-item">
               <img
-                src={rental.book.cover}
-                alt={rental.book.title}
+                src={rental.bookDetails.cover}
+                alt={rental.bookDetails.title}
                 className="rental-cover"
               />
               <div className="rental-info">
-                <h3>{rental.book.title}</h3>
-                <p>Rented by: {rental.user.name}</p>
+                <h3>{rental.bookDetails.title}</h3>
+                <p>Rented by: {rental.userDetails.name}</p>
                 <p>Collection Date: {formatDate(rental.collectionDate)}</p>
                 <p>Return Date: {formatDate(rental.returnDate)}</p>
-                <p className={`payment-status ${rental.paymentStatus}`}>
-                  Payment Status: {rental.paymentStatus}
+                <p className={`payment-status ${rental.paymentDetails.paymentMode.payNow ? 'paid' : 'pending'}`}>
+                  Payment Status: {rental.paymentDetails.paymentMode.payNow ? 'Paid' : 'Pay Later'}
                 </p>
               </div>
             </div>
