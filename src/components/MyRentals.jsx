@@ -3,7 +3,6 @@ import { formatDate } from '../utils/rentalUtils';
 
 const MyRentals = () => {
   const { rentals } = useRental();
-
   return (
     <div className="my-rentals">
       <h1>My Rented Books</h1>

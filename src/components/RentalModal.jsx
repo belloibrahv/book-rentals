@@ -147,17 +147,13 @@ const RentalModal = ({ book, onClose, onComplete }) => {
 
   // Load booking results and current booking info from localStorage on mount
   useEffect(() => {
-    // Retrieve booking results from localStorage
-      const storedBookingResults = localStorage.getItem('bookingResults');
-      window.bookingResults = storedBookingResults 
-          ? JSON.parse(storedBookingResults) 
-          : [];
-
-      // Retrieve current booking info from localStorage
-      const storedCurrentBookingInfo = localStorage.getItem('currentBookingInfo');
-      window.currentBookingInfo = storedCurrentBookingInfo
-          ? JSON.parse(storedCurrentBookingInfo)
-          : { isInFinalPage: false };
+    // Set isInFinalPage to true since this is the final booking page
+    const currentBookingInfo = {
+      ...window.currentBookingInfo,
+      isInFinalPage: true
+    };
+    window.currentBookingInfo = currentBookingInfo;
+    localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
   }, []);
 
 
@@ -167,84 +163,9 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   // Update current booking info in real-time
   useEffect(() => {
     const currentBookingInfo = {
-        bookDetails: {
-            id: book.id,
-            title: book.title,
-        },
-        userDetails: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-        },
-        rentalDetails: {
-            collectionDate: formData.collectiondate,
-            returnDate: formData.returndate,
-            rentalPrice: book.rentPrice,
-        },
-        paymentDetails: {
-            paymentMode: {
-                payNow,
-                payLater,
-            },
-            cardDetails: payNow
-                ? {
-                    cardNumber: formData.cardNumber,
-                    expiryDate: formData.expiryDate,
-                    cvv: formData.cvv,
-                }
-                : null,
-        },
-        isInFinalPage: false, // Set to false if not in final page
-    };
-    // Reset currentBookingInfo only after completing the rental
-    window.currentBookingInfo = currentBookingInfo;
-    localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
-  }, [formData, payNow, payLater, book]); 
-    
-  // Date validation logic
-  const handleDateValidation = () => {
-    const { collectiondate, returndate } = formData;
-    if (collectiondate && returndate) {
-      const collection = new Date(collectiondate);
-      const returnDate = new Date(returndate);
-  
-      // Validate return date is on or after collection date
-      if (returnDate < collection) {
-        setDateError('Return date must be on or after collection date.');
-        return false;
-      }
-    }
-    setDateError('');
-    return true;
-  };
-
-  // Collection date change handler
-  const handleCollectionDateChange = (e) => {
-    const collectionDate = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      collectiondate: collectionDate,
-      // Reset return date if it's before the new collection date
-      returndate: prev.returndate && new Date(prev.returndate) < new Date(collectionDate)
-        ? collectionDate
-        : prev.returndate
-    }));
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  
-    // Validate dates and payment details
-    if (!handleDateValidation() || !handlePaymentValidation()) {
-      return;
-    }
-  
-    // Prepare booking result based on new structure
-    const bookingResult = {
       bookDetails: {
-        ...book, // Spread all book details to include cover, etc.
+        id: book.id,
+        title: book.title,
       },
       userDetails: {
         name: formData.name,
@@ -253,9 +174,94 @@ const RentalModal = ({ book, onClose, onComplete }) => {
         address: formData.address,
       },
       rentalDetails: {
-        // Ensure these are full date objects
-        collectionDate: new Date(formData.collectiondate),
-        returnDate: new Date(formData.returndate),
+        collectionDate: formData.collectiondate,
+        returnDate: formData.returndate,
+        rentalPrice: book.rentPrice,
+      },
+      paymentDetails: {
+        paymentMode: {
+          payNow,
+          payLater,
+        },
+        cardDetails: payNow
+          ? {
+              cardNumber: formData.cardNumber,
+              expiryDate: formData.expiryDate,
+              cvv: formData.cvv,
+            }
+          : null,
+      },
+      isInFinalPage: true, // Explicitly set to true
+    };
+    
+    window.currentBookingInfo = currentBookingInfo;
+    localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
+  }, [formData, payNow, payLater, book]); 
+    
+
+  // Date validation logic - Updated to allow past dates for collection
+  const handleDateValidation = () => {
+    const { collectiondate, returndate } = formData;
+    if (collectiondate && returndate) {
+      const collection = new Date(collectiondate);
+      const returnDate = new Date(returndate);
+  
+      // Validate return date is after collection date
+      if (returnDate <= collection) {
+        setDateError('Return date must be after collection date.');
+        return false;
+      }
+    }
+    setDateError('');
+    return true;
+  };
+
+    // Collection date change handler - No restrictions on past dates
+    const handleCollectionDateChange = (e) => {
+      const collectionDate = e.target.value;
+      setFormData(prev => ({
+        ...prev,
+        collectiondate: collectionDate,
+        // Reset return date if it's not after the new collection date
+        returndate: prev.returndate && new Date(prev.returndate) <= new Date(collectionDate)
+          ? '' // Clear return date if not valid
+          : prev.returndate
+      }));
+    };
+
+  // Handle form submission - Updated to format dates
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  
+    // Validate dates and payment details
+    if (!handleDateValidation() || !handlePaymentValidation()) {
+      return;
+    }
+  
+    // Format dates as DD-MM-YYYY for consistency
+    const formatDateString = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '-');
+    };
+  
+    // Prepare booking result with formatted dates
+    const bookingResult = {
+      bookDetails: {
+        ...book,
+      },
+      userDetails: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      },
+      rentalDetails: {
+        collectionDate: formatDateString(formData.collectiondate),
+        returnDate: formatDateString(formData.returndate),
         rentalPrice: book.rentPrice,
       },
       paymentDetails: {
@@ -273,7 +279,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       },
     };    
   
-    // Rent the book using the new structure
+    // Rent the book 
     rentBook(book, {
       ...bookingResult.userDetails,
       collectiondate: bookingResult.rentalDetails.collectionDate,
@@ -281,11 +287,12 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     }, payNow ? 'now' : 'later');
   
     // Reset booking state
-    window.currentBookingInfo = { isInFinalPage: false }; // Reset current booking info after rental
-    localStorage.removeItem('currentBookingInfo'); // Clear previous booking info
+    window.currentBookingInfo = { isInFinalPage: false }; 
+    localStorage.removeItem('currentBookingInfo');
     setIsCurrentlyBooking(false);
-    onComplete(); // Close modal or perform any additional actions
+    onComplete(); 
   };  
+
   
 
   // Payment method handler
@@ -350,7 +357,6 @@ const RentalModal = ({ book, onClose, onComplete }) => {
               required
               value={formData.collectiondate}
               onChange={handleCollectionDateChange}
-              min={today}
             />
           </div>
           <div className="form-group">
@@ -358,7 +364,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
             <input
               type="date"
               required
-              min={formData.collectiondate || today}
+              min={formData.collectiondate || ''}
               value={formData.returndate}
               onChange={(e) => setFormData((prev) => ({
                 ...prev,

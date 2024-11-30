@@ -1,19 +1,17 @@
 import React, { createContext, useContext, useState } from 'react';
 
-// Create the context
-const RentalContext = createContext();
-
 // Provider Component
 export const RentalProvider = ({ children }) => {
   const [rentals, setRentals] = useState([]);
-
+  
   const rentBook = (book, userData, paymentMethod) => {
+    // Ensure book cover is preserved
     const rental = {
       bookDetails: {
         id: book.id,
         title: book.title,
-        cover: book.cover, // Ensure cover is included
-        author: book.author, // Include author if available
+        cover: book.cover || 'path/to/default/book/image.jpg', // Fallback cover
+        author: book.author || 'Unknown Author', // Fallback author
       },
       userDetails: {
         name: userData.name,
@@ -22,13 +20,21 @@ export const RentalProvider = ({ children }) => {
         address: userData.address,
       },
       rentalDetails: {
-        // Ensure these are Date objects
-        collectionDate: userData.collectiondate instanceof Date 
+        // Convert to string in consistent DD-MM-YYYY format if not already
+        collectionDate: typeof userData.collectiondate === 'string' 
           ? userData.collectiondate 
-          : new Date(userData.collectiondate),
-        returnDate: userData.returndate instanceof Date 
-          ? userData.returndate 
-          : new Date(userData.returndate),
+          : userData.collectiondate.toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }).replace(/\//g, '-'),
+        returnDate: typeof userData.returndate === 'string'
+          ? userData.returndate
+          : userData.returndate.toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }).replace(/\//g, '-'),
         rentalPrice: book.rentPrice,
       },
       paymentDetails: {
@@ -45,10 +51,10 @@ export const RentalProvider = ({ children }) => {
           : null,
       },
     };
-
-    // Update state (for managing in context)
+    
+    // Update state 
     setRentals(prevRentals => [...prevRentals, rental]);
-
+    
     // Initialize bookingResults if it does not exist
     if (!window.bookingResults) {
       window.bookingResults = [];
@@ -64,6 +70,9 @@ export const RentalProvider = ({ children }) => {
     </RentalContext.Provider>
   );
 };
+
+// Create the context
+const RentalContext = createContext();
 
 // Custom hook for using the rental context
 export const useRental = () => {

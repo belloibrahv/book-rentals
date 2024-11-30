@@ -60,4 +60,4 @@ export const books = [
     rentPrice: 8.99,
     status: "available"
   }
-];
+]
