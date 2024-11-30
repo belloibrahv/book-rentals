@@ -12,7 +12,8 @@ export const RentalProvider = ({ children }) => {
       bookDetails: {
         id: book.id,
         title: book.title,
-        cover: book.cover, // Add cover for MyRentals component
+        cover: book.cover, // Ensure cover is included
+        author: book.author, // Include author if available
       },
       userDetails: {
         name: userData.name,
@@ -21,8 +22,13 @@ export const RentalProvider = ({ children }) => {
         address: userData.address,
       },
       rentalDetails: {
-        collectionDate: userData.collectiondate,
-        returnDate: userData.returndate,
+        // Ensure these are Date objects
+        collectionDate: userData.collectiondate instanceof Date 
+          ? userData.collectiondate 
+          : new Date(userData.collectiondate),
+        returnDate: userData.returndate instanceof Date 
+          ? userData.returndate 
+          : new Date(userData.returndate),
         rentalPrice: book.rentPrice,
       },
       paymentDetails: {

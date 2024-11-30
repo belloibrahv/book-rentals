@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRental } from '../context/RentalContext';
 import { formatDate } from '../utils/rentalUtils';
 
@@ -22,8 +21,8 @@ const MyRentals = () => {
               <div className="rental-info">
                 <h3>{rental.bookDetails.title}</h3>
                 <p>Rented by: {rental.userDetails.name}</p>
-                <p>Collection Date: {formatDate(rental.collectionDate)}</p>
-                <p>Return Date: {formatDate(rental.returnDate)}</p>
+                <p>Collection Date: {formatDate(rental.rentalDetails.collectionDate)}</p>
+                <p>Return Date: {formatDate(rental.rentalDetails.returnDate)}</p>
                 <p className={`payment-status ${rental.paymentDetails.paymentMode.payNow ? 'paid' : 'pending'}`}>
                   Payment Status: {rental.paymentDetails.paymentMode.payNow ? 'Paid' : 'Pay Later'}
                 </p>

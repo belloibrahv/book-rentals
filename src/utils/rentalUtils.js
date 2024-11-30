@@ -5,7 +5,15 @@ export const calculateReturnDate = (rentDate, durationInDays = 14) => {
 };
 
 export const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
+  // Ensure date is a valid Date object
+  const validDate = date instanceof Date ? date : new Date(date);
+  
+  // Check if the date is valid
+  if (isNaN(validDate.getTime())) {
+    return 'Invalid Date';
+  }
+
+  return validDate.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
