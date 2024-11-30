@@ -10,8 +10,6 @@ export const RentalProvider = ({ children }) => {
       bookDetails: {
         id: book.id,
         title: book.title,
-        cover: book.cover || 'path/to/default/book/image.jpg', // Fallback cover
-        author: book.author || 'Unknown Author', // Fallback author
       },
       userDetails: {
         name: userData.name,
