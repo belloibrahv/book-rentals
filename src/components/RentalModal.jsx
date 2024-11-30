@@ -145,6 +145,15 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     return Object.keys(errors).length === 0;
   };
 
+  useEffect(() => {
+    const storedBookingResults = localStorage.getItem('bookingResults');
+    if (storedBookingResults) {
+      window.bookingResults = JSON.parse(storedBookingResults);
+    } else {
+      window.bookingResults = [];
+    }
+  }, []);  
+
   // Load booking results and current booking info from localStorage on mount
   useEffect(() => {
     // Set isInFinalPage to true since this is the final booking page
@@ -251,7 +260,8 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     // Prepare booking result with formatted dates
     const bookingResult = {
       bookDetails: {
-        ...book,
+        id: book.id,
+        title: book.title,
       },
       userDetails: {
         name: formData.name,
@@ -285,7 +295,12 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       collectiondate: bookingResult.rentalDetails.collectionDate,
       returndate: bookingResult.rentalDetails.returnDate,
     }, payNow ? 'now' : 'later');
-  
+    
+    // Save booking result to localStorage
+    const updatedBookingResults = [...(window.bookingResults || []), bookingResult];
+    window.bookingResults = updatedBookingResults;
+    localStorage.setItem('bookingResults', JSON.stringify(updatedBookingResults));
+
     // Reset booking state
     window.currentBookingInfo = { isInFinalPage: false }; 
     localStorage.removeItem('currentBookingInfo');
