@@ -9,6 +9,7 @@ export const RentalProvider = ({ children }) => {
       bookDetails: {
         id: book.id,
         title: book.title,
+        cover: book.cover
       },
       userDetails: {
         name: userData.name,
