@@ -9,7 +9,6 @@ export const RentalProvider = ({ children }) => {
       bookDetails: {
         id: book.id,
         title: book.title,
-        cover: book.cover, // Ensure cover is included
       },
       userDetails: {
         name: userData.name,
@@ -40,7 +39,7 @@ export const RentalProvider = ({ children }) => {
     // Update rentals and localStorage
     setRentals((prevRentals) => {
       const updatedRentals = [...prevRentals, rental];
-      window.bookingResults.push(rental);
+      // window.bookingResults.push(rental);
       localStorage.setItem('bookingResults', JSON.stringify(window.bookingResults));
       return updatedRentals;
     });
