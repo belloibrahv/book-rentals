@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRental } from '../context/RentalContext';
 
+const FROZEN_DATE = new Date('2024-01-01');
 
 // Card type detection utility
 const detectCardType = (cardNumber) => {
@@ -36,81 +37,29 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   const [dateError, setDateError] = useState('');
   const [paymentErrors, setPaymentErrors] = useState({});
 
-
-  // Comprehensive card validation functions
   const validateCardNumber = (number) => {
-    // Remove spaces and dashes
-    const cleanNumber = number.replace(/[\s-]/g, '');
-    
-    // Basic length and numeric check
-    if (!/^\d{13,19}$/.test(cleanNumber)) {
-      return 'Invalid card number';
-    }
-
-    // Luhn algorithm validation
-    let sum = 0;
-    let isEvenIndex = false;
-    for (let i = cleanNumber.length - 1; i >= 0; i--) {
-      let digit = parseInt(cleanNumber.charAt(i), 10);
-
-      if (isEvenIndex) {
-        digit *= 2;
-        if (digit > 9) {
-          digit -= 9;
-        }
-      }
-
-      sum += digit;
-      isEvenIndex = !isEvenIndex;
-    }
-
-    return sum % 10 === 0 ? null : 'Invalid card number';
+    const cleanNumber = number.replace(/\s+/g, '');
+    return cleanNumber.length >= 13 && cleanNumber.length <= 19 ? null : 'Invalid card number length';
   };
-
+  
   const validateExpiryDate = (expiry) => {
     const [month, year] = expiry.split('/');
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-      return 'Invalid expiry format (MM/YY)';
-    }
-
-    const currentYear = new Date().getFullYear() % 100;
-    const currentMonth = new Date().getMonth() + 1;
-
     const expMonth = parseInt(month, 10);
     const expYear = parseInt(year, 10);
-
+  
     if (expMonth < 1 || expMonth > 12) {
       return 'Invalid month';
     }
-
-    if (expYear < currentYear || 
-        (expYear === currentYear && expMonth < currentMonth)) {
+  
+    if (expYear < FROZEN_DATE.getFullYear() % 100 ||
+        (expYear === FROZEN_DATE.getFullYear() % 100 && expMonth < FROZEN_DATE.getMonth() + 1)) {
       return 'Card has expired';
     }
-
     return null;
   };
 
   const validateCVV = (cvv) => {
-    // Different card types have different CVV lengths
-    const cvvLength = {
-      visa: 3,
-      mastercard: 3,
-      amex: 4,
-      discover: 3
-    };
-
-    const cardTypeLength = cvvLength[cardType?.type] || 3;
-    
-    if (!/^\d+$/.test(cvv)) {
-      return 'CVV must be numeric';
-    }
-
-    if (cvv.length !== cardTypeLength) {
-      return `CVV must be ${cardTypeLength} digits for this card type`;
-    }
-
-    return null;
+    return /^\d{3,4}$/.test(cvv) ? null : 'Invalid CVV length';
   };
 
   // Handle card number change with formatting and type detection
@@ -146,7 +95,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   };
 
   useEffect(() => {
-    const storedBookingResults = localStorage.getItem('bookingResults');
+    const storedBookingResults = sessionStorage.getItem('bookingResults');
     if (storedBookingResults) {
       window.bookingResults = JSON.parse(storedBookingResults);
     } else {
@@ -154,17 +103,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     }
   }, []);  
 
-  // Load booking results and current booking info from localStorage on mount
-  useEffect(() => {
-    // Set isInFinalPage to true since this is the final booking page
-    const currentBookingInfo = {
-      ...window.currentBookingInfo,
-      isInFinalPage: true
-    };
-    window.currentBookingInfo = currentBookingInfo;
-    localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
-  }, []);
 
+  useEffect(() => {
+    window.currentBookingInfo = { ...window.currentBookingInfo, isInFinalPage: true };
+    sessionStorage.setItem('currentBookingInfo', JSON.stringify(window.currentBookingInfo));
+  }, []);
 
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
@@ -204,18 +147,16 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     };
     
     window.currentBookingInfo = currentBookingInfo;
-    localStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
+    sessionStorage.setItem('currentBookingInfo', JSON.stringify(currentBookingInfo));
   }, [formData, payNow, payLater, book]); 
     
 
-  // Date validation logic - Updated to allow past dates for collection
   const handleDateValidation = () => {
     const { collectiondate, returndate } = formData;
     if (collectiondate && returndate) {
       const collection = new Date(collectiondate);
       const returnDate = new Date(returndate);
   
-      // Validate return date is after collection date
       if (returnDate <= collection) {
         setDateError('Return date must be after collection date.');
         return false;
@@ -223,7 +164,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
     }
     setDateError('');
     return true;
-  };
+  };  
 
     // Collection date change handler - No restrictions on past dates
     const handleCollectionDateChange = (e) => {
@@ -257,10 +198,8 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       }).replace(/\//g, '-');
     };
   
-    // Prepare booking result with formatted dates
     const bookingResult = {
       bookDetails: {
-        id: book.id,
         title: book.title,
       },
       userDetails: {
@@ -272,7 +211,6 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       rentalDetails: {
         collectionDate: formatDateString(formData.collectiondate),
         returnDate: formatDateString(formData.returndate),
-        rentalPrice: book.rentPrice,
       },
       paymentDetails: {
         paymentMode: {
@@ -296,14 +234,14 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       returndate: bookingResult.rentalDetails.returnDate,
     }, payNow ? 'now' : 'later');
     
-    // Save booking result to localStorage
+ 
     const updatedBookingResults = [...(window.bookingResults || []), bookingResult];
     window.bookingResults = updatedBookingResults;
-    localStorage.setItem('bookingResults', JSON.stringify(updatedBookingResults));
+    sessionStorage.setItem('bookingResults', JSON.stringify(updatedBookingResults));
 
     // Reset booking state
     window.currentBookingInfo = { isInFinalPage: false }; 
-    localStorage.removeItem('currentBookingInfo');
+    sessionStorage.removeItem('currentBookingInfo');
     setIsCurrentlyBooking(false);
     onComplete(); 
   };  
@@ -317,13 +255,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   };
 
   const handleClose = () => {
-    setIsCurrentlyBooking(false);
     window.currentBookingInfo = { isInFinalPage: false };
-    localStorage.removeItem('currentBookingInfo');
+    sessionStorage.removeItem('currentBookingInfo');
     onClose();
   };
   
-
   return (
     <div className="modal-overlay">
       <div className="modal">

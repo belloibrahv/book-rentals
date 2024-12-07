@@ -1,8 +1,13 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 // Provider Component
 export const RentalProvider = ({ children }) => {
   const [rentals, setRentals] = useState([]);
+
+  useEffect(() => {
+    const storedRentals = sessionStorage.getItem('bookingResults');
+    setRentals(storedRentals ? JSON.parse(storedRentals) : []);
+  }, []);
 
   const rentBook = (book, userData, paymentMethod) => {
     const rental = {
@@ -37,11 +42,9 @@ export const RentalProvider = ({ children }) => {
       },
     };
   
-    // Update rentals and localStorage
     setRentals((prevRentals) => {
       const updatedRentals = [...prevRentals, rental];
-      // window.bookingResults.push(rental);
-      localStorage.setItem('bookingResults', JSON.stringify(window.bookingResults));
+      sessionStorage.setItem('bookingResults', JSON.stringify(updatedRentals));
       return updatedRentals;
     });
   };
