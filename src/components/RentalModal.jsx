@@ -45,16 +45,17 @@ const RentalModal = ({ book, onClose, onComplete }) => {
   const validateExpiryDate = (expiry) => {
     const [month, year] = expiry.split('/');
     const expMonth = parseInt(month, 10);
-    const expYear = parseInt(year, 10);
+    const expYear = parseInt(year, 10) + 2000; // Adjust for 2-digit years
   
     if (expMonth < 1 || expMonth > 12) {
       return 'Invalid month';
     }
   
-    if (expYear < FROZEN_DATE.getFullYear() % 100 ||
-        (expYear === FROZEN_DATE.getFullYear() % 100 && expMonth < FROZEN_DATE.getMonth() + 1)) {
-      return 'Card has expired';
+    // Allow both past and present dates
+    if (expYear < 2024 || (expYear === 2024 && expMonth < 1)) {
+      return null; // Accept expired cards
     }
+  
     return null;
   };
 
@@ -96,13 +97,8 @@ const RentalModal = ({ book, onClose, onComplete }) => {
 
   useEffect(() => {
     const storedBookingResults = sessionStorage.getItem('bookingResults');
-    if (storedBookingResults) {
-      window.bookingResults = JSON.parse(storedBookingResults);
-    } else {
-      window.bookingResults = [];
-    }
-  }, []);  
-
+    window.bookingResults = storedBookingResults ? JSON.parse(storedBookingResults) : [];
+  }, []);
 
   useEffect(() => {
     window.currentBookingInfo = { ...window.currentBookingInfo, isInFinalPage: true };

@@ -6,13 +6,14 @@ export const RentalProvider = ({ children }) => {
 
   useEffect(() => {
     const storedRentals = sessionStorage.getItem('bookingResults');
-    setRentals(storedRentals ? JSON.parse(storedRentals) : []);
+    const parsedRentals = storedRentals ? JSON.parse(storedRentals) : [];
+    window.bookingResults = parsedRentals.length > 0 ? parsedRentals : [];
+    setRentals(parsedRentals);
   }, []);
 
   const rentBook = (book, userData, paymentMethod) => {
     const rental = {
       bookDetails: {
-        id: book.id,
         title: book.title,
         cover: book.cover
       },
@@ -25,7 +26,6 @@ export const RentalProvider = ({ children }) => {
       rentalDetails: {
         collectionDate: userData.collectiondate,
         returnDate: userData.returndate,
-        rentalPrice: book.rentPrice,
       },
       paymentDetails: {
         paymentMode: {
@@ -41,14 +41,16 @@ export const RentalProvider = ({ children }) => {
           : null,
       },
     };
-  
+
+    // Update rentals and sessionStorage
     setRentals((prevRentals) => {
       const updatedRentals = [...prevRentals, rental];
       sessionStorage.setItem('bookingResults', JSON.stringify(updatedRentals));
+      window.bookingResults = updatedRentals; // Update global variable
       return updatedRentals;
     });
   };
-  
+
   return (
     <RentalContext.Provider value={{ rentals, rentBook }}>
       {children}

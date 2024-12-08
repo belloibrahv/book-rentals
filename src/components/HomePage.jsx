@@ -1,16 +1,22 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { books } from '../data/books';
 
 const HomePage = () => {
+  useEffect(() => {
+    // Ensure window.currentBookingInfo is always defined
+    window.currentBookingInfo = { isInFinalPage: false };
+  }, []);
+
   return (
     <div className="home-page">
       <h1 className="text-3xl font-bold text-center my-8">Welcome to BookRental</h1>
       <div className="books-grid">
-        {books.map(book => (
+        {books.map((book) => (
           <Link to={`/book/${book.id}`} key={book.id} className="book-card">
             <div className="book-image-container">
-              <img 
-                src={book.cover} 
+              <img
+                src={book.cover}
                 alt={book.title}
                 className="book-cover"
                 loading="lazy"
