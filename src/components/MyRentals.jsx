@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRental } from '../context/RentalContext';
 import { formatDate } from '../utils/rentalUtils';
+import NoCover from '../assets/images/no-cover.png';
 
 const MyRentals = () => {
   const { rentals } = useRental();
@@ -20,30 +21,32 @@ const MyRentals = () => {
         <p>{"You haven't rented any books yet."}</p>
       ) : (
         <div className="rented-books-list">
-          {displayedRentals.map((rental, index) => {
-            return (
-              <div key={index} className="rental-item">
-                {rental.bookDetails.cover ? (
-                  <img
-                    src={rental.bookDetails.cover}
-                    alt={rental.bookDetails.title}
-                    className="rental-cover"
-                  />
-                ) : (
-                  <p>No cover available</p>
-                )}
-                <div className="rental-info">
-                  <h3>{rental.bookDetails.title}</h3>
-                  <p>Rented by: {rental.userDetails.name}</p>
-                  <p>Collection Date: {formatDate(rental.rentalDetails.collectionDate)}</p>
-                  <p>Return Date: {formatDate(rental.rentalDetails.returnDate)}</p>
-                  <p className={`payment-status ${rental.paymentDetails.paymentMode.payNow ? 'paid' : 'pending'}`}>
-                    Payment Status: {rental.paymentDetails.paymentMode.payNow ? 'Paid' : 'Pay Later'}
-                  </p>
-                </div>
+          {displayedRentals.map((rental, index) => (
+            <div key={index} className="rental-item">
+              <img
+                src={
+                  rental.bookDetails.cover
+                    ? rental.bookDetails.cover
+                    : NoCover
+                }
+                alt={rental.bookDetails.title || 'No Title'}
+                className="rental-cover"
+              />
+              <div className="rental-info">
+                <h3>{rental.bookDetails.title || 'Unknown Title'}</h3>
+                <p>Rented by: {rental.userDetails.name}</p>
+                <p>Collection Date: {formatDate(rental.rentalDetails.collectionDate)}</p>
+                <p>Return Date: {formatDate(rental.rentalDetails.returnDate)}</p>
+                <p
+                  className={`payment-status ${
+                    rental.paymentDetails.paymentMode.payNow ? 'paid' : 'pending'
+                  }`}
+                >
+                  Payment Status: {rental.paymentDetails.paymentMode.payNow ? 'Paid' : 'Pay Later'}
+                </p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>

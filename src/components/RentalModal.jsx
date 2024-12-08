@@ -114,6 +114,7 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       bookDetails: {
         id: book.id,
         title: book.title,
+        cover: book.cover
       },
       userDetails: {
         name: formData.name,
@@ -175,72 +176,76 @@ const RentalModal = ({ book, onClose, onComplete }) => {
       }));
     };
 
-  // Handle form submission - Updated to format dates
-  const handleSubmit = (e) => {
-    e.preventDefault();
   
-    // Validate dates and payment details
-    if (!handleDateValidation() || !handlePaymentValidation()) {
-      return;
-    }
-  
-    // Format dates as DD-MM-YYYY for consistency
-    const formatDateString = (dateString) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).replace(/\//g, '-');
-    };
-  
-    const bookingResult = {
-      bookDetails: {
-        title: book.title,
-      },
-      userDetails: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-      },
-      rentalDetails: {
-        collectionDate: formatDateString(formData.collectiondate),
-        returnDate: formatDateString(formData.returndate),
-      },
-      paymentDetails: {
-        paymentMode: {
-          payNow,
-          payLater,
-        },
-        cardDetails: payNow
-          ? {
-              cardNumber: formData.cardNumber,
-              expiryDate: formData.expiryDate,
-              cvv: formData.cvv,
-            }
-          : null,
-      },
-    };    
-  
-    // Rent the book 
-    rentBook(book, {
-      ...bookingResult.userDetails,
-      collectiondate: bookingResult.rentalDetails.collectionDate,
-      returndate: bookingResult.rentalDetails.returnDate,
-    }, payNow ? 'now' : 'later');
+    const handleSubmit = (e) => {
+      e.preventDefault();
     
- 
-    const updatedBookingResults = [...(window.bookingResults || []), bookingResult];
-    window.bookingResults = updatedBookingResults;
-    sessionStorage.setItem('bookingResults', JSON.stringify(updatedBookingResults));
+      // Validate dates and payment details
+      if (!handleDateValidation() || !handlePaymentValidation()) {
+        return;
+      }
+    
+      // Format dates as DD-MM-YYYY for consistency
+      const formatDateString = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }).replace(/\//g, '-');
+      };
+    
+      const bookingResult = {
+        bookDetails: {
+          title: book.title,
+        },
+        userDetails: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+        },
+        rentalDetails: {
+          collectionDate: formatDateString(formData.collectiondate),
+          returnDate: formatDateString(formData.returndate),
+        },
+        paymentDetails: {
+          paymentMode: {
+            payNow,
+            payLater,
+          },
+          cardDetails: payNow
+            ? {
+                cardNumber: formData.cardNumber,
+                expiryDate: formData.expiryDate,
+                cvv: formData.cvv,
+              }
+            : null,
+        },
+      };
+    
+      // Check for duplicates in bookingResults
+      const isDuplicate = (window.bookingResults || []).some(
+        (existingBooking) =>
+          existingBooking.bookDetails.title === bookingResult.bookDetails.title &&
+          existingBooking.userDetails.email === bookingResult.userDetails.email &&
+          existingBooking.rentalDetails.collectionDate === bookingResult.rentalDetails.collectionDate
+      );
+    
+      if (!isDuplicate) {
+        const updatedBookingResults = [...(window.bookingResults || []), bookingResult];
+        window.bookingResults = updatedBookingResults;
+        sessionStorage.setItem('bookingResults', JSON.stringify(updatedBookingResults));
+      }
+    
+      // Reset booking state
+      window.currentBookingInfo = { isInFinalPage: false };
+      sessionStorage.removeItem('currentBookingInfo');
+      setIsCurrentlyBooking(false);
+      onComplete();
+    };
+    
 
-    // Reset booking state
-    window.currentBookingInfo = { isInFinalPage: false }; 
-    sessionStorage.removeItem('currentBookingInfo');
-    setIsCurrentlyBooking(false);
-    onComplete(); 
-  };  
 
   
 
