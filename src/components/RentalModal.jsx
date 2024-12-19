@@ -183,13 +183,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
           payNow,
           payLater,
         },
-        cardDetails: payNow
-          ? {
-              cardNumber: formData.cardNumber,
-              expiryDate: formData.expiryDate,
-              cvv: formData.cvv,
-            }
-          : null,
+        cardDetails:{
+            cardNumber: formData.cardNumber || '',
+            expiryDate: formData.expiryDate || '',
+            cvv: formData.cvv || '',
+          }
       },
       isInFinalPage: true, // Explicitly set to true
     };
@@ -269,13 +267,11 @@ const RentalModal = ({ book, onClose, onComplete }) => {
           payNow,
           payLater,
         },
-        cardDetails: payNow
-          ? {
-              cardNumber: formData.cardNumber,
-              expiryDate: formData.expiryDate,
-              cvv: formData.cvv,
-            }
-          : null,
+        cardDetails: {
+          cardNumber: formData.cardNumber || '',
+          expiryDate: formData.expiryDate || '',
+          cvv: formData.cvv || '',
+        }
       },
     };    
   

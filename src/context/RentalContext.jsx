@@ -40,13 +40,11 @@ export const RentalProvider = ({ children }) => {
           payNow: paymentMethod === 'now',
           payLater: paymentMethod === 'later',
         },
-        cardDetails: paymentMethod === 'now'
-          ? {
-              cardNumber: userData.cardNumber,
-              expiryDate: userData.expiryDate,
-              cvv: userData.cvv,
-            }
-          : null,
+        cardDetails: {
+            cardNumber: userData.cardNumber || '',
+            expiryDate: userData.expiryDate || '',
+            cvv: userData.cvv || '',
+          }
       },
     };
     

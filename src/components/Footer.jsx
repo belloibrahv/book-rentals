@@ -25,9 +25,9 @@ const Footer = () => {
           </div>
           <div className="footer-links">
             <h4>Get in Touch</h4>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="mailto:info@bookrental.com">Email</a>
+            <a href="#" target="_blank" rel="noopener noreferrer">Twitter</a>
+            <a href="#" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="#">Email</a>
           </div>
         </div>
         {/* Footer Bottom */}
